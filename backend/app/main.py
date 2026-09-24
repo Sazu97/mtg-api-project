@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from backend.app.core.database import engine, Base
-from backend.app.api.endpoints import sets, card
+from backend.app.routes import sets, card
 
 # Crea las tablas en SQLite si aún no existen
 Base.metadata.create_all(bind=engine)
