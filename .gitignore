@@ -1,5 +1,6 @@
-.venv/
 __pycache__/
 *.pyc
-mtg.db
 .env
+*.db
+.venv/
+venv/

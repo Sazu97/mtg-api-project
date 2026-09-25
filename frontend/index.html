@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MTG Collection Vault — API & Client</title>
+
+  <!-- Fuentes e Iconos -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+
+<!-- CSS Modular -->
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/cards.css" />
+  <link rel="stylesheet" href="css/feedback.css" />
+
+  <!-- Axios vía CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+
+  <!-- ========================================================================
+      HEADER
+      ======================================================================== -->
+  <header class="site-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <span class="material-symbols-outlined">style</span>
+        </div>
+        <span class="brand-title">MTG Collection Vault</span>
+        <div class="status-badge">
+          <span class="pulse-dot"></span>
+          <span>API Online • v1.0.0</span>
+        </div>
+      </div>
+
+      <nav class="nav-links">
+        <a href="#docs" class="nav-item">API Docs</a>
+        <a href="#sets" class="nav-item">Colecciones</a>
+        <a href="#cards" class="nav-item active">Cartas</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="http://127.0.0.1:8000/docs" target="_blank" rel="noopener noreferrer" class="btn-docs">
+          <span>Swagger UI</span>
+          <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ======================================================================
+        SECTION 1: HERO & API DOCUMENTATION
+        ====================================================================== -->
+    <section id="docs" class="section-wrapper">
+      <div class="content-container">
+        <div class="hero-content">
+          <div class="tech-pill">
+            <span class="material-symbols-outlined" style="font-size: 16px;">database</span>
+            <span>SQLite & SQLAlchemy Relational Integrity • OpenAPI 3.1</span>
+          </div>
+          <h1 class="hero-title">
+            RESTful Magic: The Gathering Vault Engine
+          </h1>
+          <p class="hero-description">
+            Cliente web interactivo conectado a la API de FastAPI. Administra colecciones y cartas con integridad referencial, borrado en cascada y validación estricta de esquemas Pydantic.
+          </p>
+        </div>
+
+        <!-- Matriz de endpoints interactiva -->
+        <div class="docs-interactive-grid">
+          <div class="endpoints-panel">
+            <div class="endpoint-row active" onclick="showEndpointMock('GET_SETS')">
+              <div class="endpoint-route">
+                <span class="method-tag get">GET</span>
+                <span>/sets/</span>
+              </div>
+              <span class="text-muted">Listar colecciones registradas</span>
+            </div>
+
+            <div class="endpoint-row" onclick="showEndpointMock('POST_SETS')">
+              <div class="endpoint-route">
+                <span class="method-tag post">POST</span>
+                <span>/sets/</span>
+              </div>
+              <span class="text-muted">Crear nueva colección</span>
+            </div>
+
+            <div class="endpoint-row" onclick="showEndpointMock('GET_CARDS')">
+              <div class="endpoint-route">
+                <span class="method-tag get">GET</span>
+                <span>/cards/</span>
+              </div>
+              <span class="text-muted">Filtrar cartas por nombre o set</span>
+            </div>
+
+            <div class="endpoint-row" onclick="showEndpointMock('POST_CARDS')">
+              <div class="endpoint-route">
+                <span class="method-tag post">POST</span>
+                <span>/cards/</span>
+              </div>
+              <span class="text-muted">Registrar carta asociada a un set</span>
+            </div>
+
+            <div class="endpoint-row" onclick="showEndpointMock('DEL_SETS')">
+              <div class="endpoint-route">
+                <span class="method-tag delete">DELETE</span>
+                <span>/sets/{id}</span>
+              </div>
+              <span class="text-muted" style="color: var(--error);">Borrado en cascada (Set + Cartas)</span>
+            </div>
+          </div>
+
+          <!-- Visor de JSON -->
+          <div class="terminal-panel">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </div>
+              <span class="status-badge" style="background: rgba(76, 215, 246, 0.1);">Respuesta HTTP 200 OK</span>
+            </div>
+            <pre class="code-viewer" id="json-viewer">[
+  {
+    "id": 1,
+    "code": "BLB",
+    "name": "Bloomburrow",
+    "release_date": "2024-08-02"
+  }
+]</pre>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="text-muted mono" style="font-size: 0.75rem;">Content-Type: application/json</span>
+              <button class="btn-ghost" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="navigator.clipboard.writeText(document.getElementById('json-viewer').innerText)">
+                <span class="material-symbols-outlined" style="font-size: 14px;">content_copy</span>
+                <span>Copiar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+        SECTION 2: COLECCIONES (SETS)
+        ====================================================================== -->
+    <section id="sets" class="section-wrapper alt-bg">
+      <div class="content-container">
+        <div class="section-header">
+          <div class="section-title-group">
+            <h2>Colecciones Registradas</h2>
+            <p>Contenedores relacionales padres con integridad de clave foránea</p>
+          </div>
+          <button class="btn-secondary" onclick="openCreateSetModal()">
+            <span class="material-symbols-outlined">add</span>
+            <span>Nueva Colección</span>
+          </button>
+        </div>
+
+        <div class="sets-grid" id="sets-container">
+          <!-- Tarjeta de ejemplo mientras conectamos Axios -->
+          <article class="set-card">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <div class="set-badge-code">BLB</div>
+                  <div>
+                    <h3 style="font-size: 1.1rem; font-weight: 700;">Bloomburrow</h3>
+                    <span class="text-muted mono" style="font-size: 0.75rem;">Lanzamiento: 2024-08-02</span>
+                  </div>
+                </div>
+              </div>
+              <div class="set-card-stats">
+                <div>
+                  <span class="text-muted" style="font-size: 0.75rem; display: block;">ID en Base de Datos</span>
+                  <span class="mono" style="font-weight: 700; font-size: 1.1rem;">#1</span>
+                </div>
+                <div>
+                  <span class="text-muted" style="font-size: 0.75rem; display: block;">Cascada</span>
+                  <span class="mono" style="color: var(--secondary); font-size: 0.8rem;">Activa</span>
+                </div>
+              </div>
+            </div>
+            <div class="set-card-actions">
+              <span class="text-muted mono" style="font-size: 0.75rem;">ON DELETE CASCADE</span>
+              <div>
+                <button class="btn-icon" title="Editar"><span class="material-symbols-outlined">edit</span></button>
+                <button class="btn-icon danger" title="Borrar en cascada"><span class="material-symbols-outlined">delete_sweep</span></button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+        SECTION 3: CARTAS (CARDS)
+        ====================================================================== -->
+    <section id="cards" class="section-wrapper">
+      <div class="content-container">
+        <div class="section-header">
+          <div class="section-title-group">
+            <h2>Catálogo de Cartas</h2>
+            <p>Filtrado dinámico, paginación y validación de tipos</p>
+          </div>
+          <button class="btn-primary" onclick="openCreateCardModal()">
+            <span class="material-symbols-outlined">add</span>
+            <span>Nueva Carta</span>
+          </button>
+        </div>
+
+        <!-- Barra de filtros -->
+        <div class="toolbar-container">
+          <div class="search-box">
+            <span class="material-symbols-outlined search-icon">search</span>
+            <input type="text" id="card-search-input" class="input-search" placeholder="Buscar por nombre de carta..." />
+          </div>
+          <div class="filters-group">
+            <select id="filter-set" class="custom-select">
+              <option value="">Todas las colecciones</option>
+            </select>
+            <select id="filter-rarity" class="custom-select">
+              <option value="">Todas las rarezas</option>
+              <option value="Common">Common</option>
+              <option value="Uncommon">Uncommon</option>
+              <option value="Rare">Rare</option>
+              <option value="Mythic">Mythic</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Grid de Cartas -->
+        <div class="cards-grid" id="cards-container">
+          <!-- Tarjeta de ejemplo -->
+          <article class="card-item">
+            <div>
+              <div class="card-top">
+                <h3 class="card-name">Vren, the Relentless</h3>
+                <span class="card-mana">{2}{U}{B}</span>
+              </div>
+              <p class="card-type">Legendary Creature — Rat Rogue</p>
+            </div>
+            <div>
+              <div class="card-bottom-info">
+                <span class="rarity-badge rarity-rare">Rare</span>
+                <span class="text-muted mono" style="font-size: 0.8rem;">Set: BLB (#1)</span>
+                <div class="card-pt">3/4</div>
+              </div>
+              <div class="card-actions">
+                <button class="btn-icon" title="Editar"><span class="material-symbols-outlined">edit</span></button>
+                <button class="btn-icon danger" title="Eliminar"><span class="material-symbols-outlined">delete</span></button>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- Paginación -->
+        <div class="pagination-wrapper">
+          <span class="text-muted mono" id="pagination-info">Mostrando cartas registradas</span>
+          <div class="pagination-controls">
+            <button class="page-btn" id="btn-prev"><span class="material-symbols-outlined" style="font-size: 16px;">arrow_back</span></button>
+            <span class="page-btn active" id="current-page">1</span>
+            <button class="page-btn" id="btn-next"><span class="material-symbols-outlined" style="font-size: 16px;">arrow_forward</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================================================
+      MODALES
+       ======================================================================= -->
+
+  <!-- Modal Crear/Editar Carta -->
+  <div id="card-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-card-title">Registrar Nueva Carta</h3>
+        <button class="btn-icon" onclick="closeModal('card-modal')"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <form id="card-form">
+        <input type="hidden" id="card-id" />
+        <div class="form-group">
+          <label for="card-name">Nombre de la carta *</label>
+          <input type="text" id="card-name" class="form-input" placeholder="ej. Vren, the Relentless" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="card-mana">Coste de maná</label>
+            <input type="text" id="card-mana" class="form-input mono" placeholder="{2}{U}{B}" />
+          </div>
+          <div class="form-group">
+            <label for="card-set-id">Colección asociada (Set) *</label>
+            <select id="card-set-id" class="form-input" required>
+              <option value="">Selecciona un set...</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="card-type">Línea de tipo *</label>
+          <input type="text" id="card-type" class="form-input" placeholder="ej. Legendary Creature — Rat Rogue" required />
+        </div>
+        <div class="form-row three-cols">
+          <div class="form-group">
+            <label for="card-rarity">Rareza *</label>
+            <select id="card-rarity" class="form-input" required>
+              <option value="Common">Common</option>
+              <option value="Uncommon">Uncommon</option>
+              <option value="Rare" selected>Rare</option>
+              <option value="Mythic">Mythic</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="card-power">Fuerza (P)</label>
+            <input type="text" id="card-power" class="form-input" placeholder="3 o *" />
+          </div>
+          <div class="form-group">
+            <label for="card-toughness">Resistencia (T)</label>
+            <input type="text" id="card-toughness" class="form-input" placeholder="4 o *" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" onclick="closeModal('card-modal')">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar Carta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Crear/Editar Colección -->
+  <div id="set-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-set-title">Registrar Colección</h3>
+        <button class="btn-icon" onclick="closeModal('set-modal')"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <form id="set-form">
+        <input type="hidden" id="set-id-field" />
+        <div class="form-group">
+          <label for="set-name">Nombre de la colección *</label>
+          <input type="text" id="set-name" class="form-input" placeholder="ej. Bloomburrow" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="set-code">Código único (ej. BLB) *</label>
+            <input type="text" id="set-code" class="form-input mono" maxlength="10" placeholder="BLB" required />
+          </div>
+          <div class="form-group">
+            <label for="set-date">Fecha de lanzamiento</label>
+            <input type="date" id="set-date" class="form-input" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" onclick="closeModal('set-modal')">Cancelar</button>
+          <button type="submit" class="btn-secondary">Guardar Colección</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Confirmación de Borrado en Cascada -->
+  <div id="danger-modal" class="modal-overlay hidden">
+    <div class="modal-content" style="border-left: 4px solid var(--error);">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--error);">
+          <span class="material-symbols-outlined">warning</span>
+          <h3>Confirmar Borrado en Cascada</h3>
+        </div>
+        <button class="btn-icon" onclick="closeModal('danger-modal')"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <p style="color: var(--text-dim); line-height: 1.6;">
+        ¿Seguro que deseas eliminar la colección <strong id="danger-set-name" style="color: var(--text-primary);"></strong>?
+      </p>
+      <div style="background: var(--danger-bg); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid rgba(239,68,68,0.3);">
+        <p style="color: #ffdad6; font-size: 0.8rem;">
+          <strong>Advertencia de integridad referencial:</strong> Todas las cartas asociadas a esta colección se eliminarán automáticamente de la base de datos (<code>ON DELETE CASCADE</code>).
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" onclick="closeModal('danger-modal')">Cancelar</button>
+        <button type="button" id="btn-confirm-delete" class="btn-primary" style="background: var(--error); color: #fff;">Eliminar en Cascada</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor de Alertas Toast -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ========================================================================
+      FOOTER
+      ======================================================================== -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-top">
+        <div>
+          <span class="mono" style="font-weight: 700; color: var(--text-primary); font-size: 1rem;">MTG Collection Vault</span>
+          <span class="status-badge" style="margin-left: 0.5rem;">FastAPI + SQLite</span>
+        </div>
+        <div>
+          <a href="http://127.0.0.1:8000/docs" target="_blank" style="color: var(--secondary); margin-left: 1rem;">Swagger Docs</a>
+          <a href="http://127.0.0.1:8000/redoc" target="_blank" style="color: var(--secondary); margin-left: 1rem;">ReDoc</a>
+        </div>
+      </div>
+      <p class="footer-disclaimer">
+        MTG Collection Vault es un proyecto académico de catalogación y no está afiliado ni respaldado por Wizards of the Coast LLC. Las marcas e información de Magic: The Gathering son propiedad de Wizards of the Coast.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts auxiliares del visor de documentación -->
+  <script>
+    const mockData = {
+      GET_SETS: `[\n  {\n    "id": 1,\n    "code": "BLB",\n    "name": "Bloomburrow",\n    "release_date": "2024-08-02"\n  }\n]`,
+      POST_SETS: `{\n  "code": "MH3",\n  "name": "Modern Horizons 3",\n  "release_date": "2024-06-14"\n}`,
+      GET_CARDS: `[\n  {\n    "id": 1,\n    "name": "Vren, the Relentless",\n    "mana_cost": "{2}{U}{B}",\n    "type_line": "Legendary Creature — Rat Rogue",\n    "rarity": "Rare",\n    "power": "3",\n    "toughness": "4",\n    "set_id": 1\n  }\n]`,
+      POST_CARDS: `{\n  "name": "Heartfire Hero",\n  "mana_cost": "{R}",\n  "type_line": "Creature — Mouse Soldier",\n  "rarity": "Uncommon",\n  "power": "1",\n  "toughness": "1",\n  "set_id": 1\n}`,
+      DEL_SETS: `// Respuesta HTTP 204 No Content\n// Elimina el Set y sus cartas asociadas en cascada`
+    };
+
+    function showEndpointMock(key) {
+      document.getElementById('json-viewer').textContent = mockData[key];
+      document.querySelectorAll('.endpoint-row').forEach(row => row.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function openCreateSetModal() {
+      document.getElementById('set-form').reset();
+      document.getElementById('set-id-field').value = '';
+      document.getElementById('modal-set-title').innerText = 'Registrar Colección';
+      document.getElementById('set-modal').classList.remove('hidden');
+    }
+
+    function openCreateCardModal() {
+      document.getElementById('card-form').reset();
+      document.getElementById('card-id').value = '';
+      document.getElementById('modal-card-title').innerText = 'Registrar Nueva Carta';
+      document.getElementById('card-modal').classList.remove('hidden');
+    }
+  </script>
+
+  <!-- Lógica modular de conexión con FastAPI -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
