@@ -9,14 +9,14 @@
   --bg-surface-elevated: #222a3d;
   --bg-surface-highest: #2d3449;
 
-  /* Primarios y acentos */
-  --primary: #c0c1ff;
-  --primary-hover: #8083ff;
-  --primary-text: #1000a9;
-  --secondary: #4cd7f6;
-  --secondary-hover: #03b5d3;
-  --secondary-text: #003640;
-  --secondary-container: #03b5d3;
+/* Primarios y acentos */
+  --primary: #6366f1;            
+  --primary-hover: #4f46e5;      
+  --primary-text: #ffffff;        
+  --secondary: #06b6d4;            
+  --secondary-hover: #0891b2;
+  --secondary-text: #042f2e;      
+  --secondary-container: #06b6d4;
 
   /* Textos y bordes */
   --text-primary: #dae2fd;
@@ -97,24 +97,8 @@ button {
 /* ==========================================================================
     3. BOTONES GLOBALES
    ========================================================================== */
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.25rem;
-  border-radius: var(--radius-md);
-  background: var(--primary);
-  color: var(--primary-text);
-  font-weight: 600;
-  transition: var(--transition);
-}
-
-.btn-primary:hover {
-  background: var(--primary-hover);
-  color: #fff;
-}
-
+/* Botones de acción principales (unificados y planos, sin glow) */
+.btn-primary,
 .btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -122,14 +106,31 @@ button {
   gap: 0.5rem;
   padding: 0.65rem 1.25rem;
   border-radius: var(--radius-md);
-  background: var(--secondary-container);
-  color: var(--secondary-text);
+  background: var(--primary); /* El morado/índigo de Nueva Carta */
+  color: #ffffff !important;
   font-weight: 600;
-  transition: var(--transition);
+  border: none;
+  box-shadow: none; /* Elimina cualquier resplandor o halo */
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
 }
 
+.btn-primary *,
+.btn-secondary * {
+  color: inherit;
+}
+
+.btn-primary:hover,
 .btn-secondary:hover {
-  background: var(--secondary);
+  background: var(--primary-hover);
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: none; /* Mantiene el botón limpio sin glow al pasar el ratón */
+}
+
+.btn-primary:active,
+.btn-secondary:active {
+  transform: translateY(0);
 }
 
 .btn-ghost {
