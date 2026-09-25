@@ -224,6 +224,36 @@ document.addEventListener('DOMContentLoaded', () => {
         loadCards();
     });
 
+    setupNavSpy();
     loadSets();
     loadCards();
 });
+
+/* --- Detector de sección activa para el menú superior --- */
+function setupNavSpy() {
+    const navItems = document.querySelectorAll('.nav-links .nav-item');
+    const sections = document.querySelectorAll('section[id]');
+
+    function updateActiveNav() {
+        // 150px de margen para compensar la barra superior fija
+        const scrollPosition = window.scrollY + 150;
+
+        sections.forEach(section => {
+            const top = section.offsetTop;
+            const height = section.offsetHeight;
+            const id = section.getAttribute('id');
+
+            if (scrollPosition >= top && scrollPosition < top + height) {
+                navItems.forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('href') === `#${id}`) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+        });
+    }
+
+    window.addEventListener('scroll', updateActiveNav, { passive: true });
+    updateActiveNav(); // Ejecuta una comprobación inicial al cargar la página
+}
