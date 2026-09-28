@@ -229,14 +229,28 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCards();
 });
 
+
 /* --- Detector de sección activa para el menú superior --- */
 function setupNavSpy() {
     const navItems = document.querySelectorAll('.nav-links .nav-item');
     const sections = document.querySelectorAll('section[id]');
 
     function updateActiveNav() {
-        // 150px de margen para compensar la barra superior fija
-        const scrollPosition = window.scrollY + 150;
+        // 1. Si el usuario llega al fondo de la página, activa directamente la última sección
+        const isBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 60);
+
+        if (isBottom) {
+            navItems.forEach(item => item.classList.remove('active'));
+            const lastSection = sections[sections.length - 1];
+            if (lastSection) {
+                const lastNav = document.querySelector(`.nav-links a[href="#${lastSection.id}"]`);
+                if (lastNav) lastNav.classList.add('active');
+            }
+            return;
+        }
+
+        // 2. Comprobación normal por posición relativa
+        const scrollPosition = window.scrollY + 180;
 
         sections.forEach(section => {
             const top = section.offsetTop;
@@ -255,5 +269,5 @@ function setupNavSpy() {
     }
 
     window.addEventListener('scroll', updateActiveNav, { passive: true });
-    updateActiveNav(); // Ejecuta una comprobación inicial al cargar la página
+    updateActiveNav();
 }
