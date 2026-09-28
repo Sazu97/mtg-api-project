@@ -290,6 +290,27 @@
   letter-spacing: 0.5px;
 }
 
+/* Caja de texto de reglas / Oracle */
+.card-oracle-text {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.45);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.8rem;
+  margin: 0.65rem 0;
+  border-left: 2px solid var(--primary);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.2px;
+}
+
+/* Símbolos de maná incrustados dentro del texto de reglas */
+.card-oracle-text i.ms {
+  font-size: 0.85rem;
+  vertical-align: -1px;
+  margin: 0 1px;
+}
+
 /* ==========================================================================
     5. MEDIA QUERIES (CARDS & TOOLBAR)
    ========================================================================== */

@@ -18,6 +18,43 @@ function formatManaSymbols(cost) {
     });
 }
 
+/* Caché en memoria para no repetir peticiones a Scryfall */
+const oracleCache = new Map();
+
+/* Consulta el texto oficial de reglas de la carta y lo renderiza */
+function loadCardOracle(card) {
+    const container = document.getElementById(`oracle-${card.id}`);
+    if (!container) return;
+
+    // Si ya lo consultamos antes, lo sacamos de la caché local
+    if (oracleCache.has(card.name)) {
+        const text = oracleCache.get(card.name);
+        if (text) {
+            container.innerHTML = formatManaSymbols(escapeHtml(text)).replace(/\n/g, '<br>');
+        } else {
+            container.style.display = 'none';
+        }
+        return;
+    }
+
+    // Petición a Scryfall
+    fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(card.name)}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+            if (data && data.oracle_text) {
+                oracleCache.set(card.name, data.oracle_text);
+                container.innerHTML = formatManaSymbols(escapeHtml(data.oracle_text)).replace(/\n/g, '<br>');
+            } else {
+                oracleCache.set(card.name, null);
+                container.style.display = 'none';
+            }
+        })
+        .catch(() => {
+            oracleCache.set(card.name, null);
+            container.style.display = 'none';
+        });
+}
+
 const UI = {
     // Renderiza el listado de colecciones
     renderSets: (sets, container) => {
@@ -25,51 +62,51 @@ const UI = {
 
         if (sets.length === 0) {
             container.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted);">
-            No hay colecciones registradas. Pulsa en "Nueva Colección" para registrar la primera.
-        </div>
-        `;
+            <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted);">
+                No hay colecciones registradas. Pulsa en "Nueva Colección" para registrar la primera.
+            </div>
+            `;
             return;
         }
 
         container.innerHTML = sets.map(set => `
         <article class="set-card">
-        <div>
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <div class="set-badge-code">${escapeHtml(set.code)}</div>
+            <div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="set-badge-code">${escapeHtml(set.code)}</div>
+                        <div>
+                            <h3 style="font-size: 1.1rem; font-weight: 700;">${escapeHtml(set.name)}</h3>
+                            <span class="text-muted mono" style="font-size: 0.75rem;">
+                                ${set.release_date ? `Lanzamiento: ${set.release_date}` : 'Sin fecha'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="set-card-stats">
                     <div>
-                    <h3 style="font-size: 1.1rem; font-weight: 700;">${escapeHtml(set.name)}</h3>
-                    <span class="text-muted mono" style="font-size: 0.75rem;">
-                        ${set.release_date ? `Lanzamiento: ${set.release_date}` : 'Sin fecha'}
-                    </span>
+                        <span class="text-muted" style="font-size: 0.75rem; display: block;">ID Base de Datos</span>
+                        <span class="mono" style="font-weight: 700; font-size: 1.1rem;">#${set.id}</span>
+                    </div>
+                    <div>
+                        <span class="text-muted" style="font-size: 0.75rem; display: block;">Integridad FK</span>
+                        <span class="mono" style="color: var(--secondary); font-size: 0.8rem;">Cascade Active</span>
                     </div>
                 </div>
             </div>
-            <div class="set-card-stats">
-            <div>
-                <span class="text-muted" style="font-size: 0.75rem; display: block;">ID Base de Datos</span>
-                <span class="mono" style="font-weight: 700; font-size: 1.1rem;">#${set.id}</span>
+            <div class="set-card-actions">
+                <span class="text-muted mono" style="font-size: 0.75rem;">ON DELETE CASCADE</span>
+                <div>
+                    <button class="btn-icon" title="Editar" onclick="openEditSetModal(${set.id})">
+                        <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button class="btn-icon danger" title="Eliminar en cascada" onclick="requestDeleteSet(${set.id}, '${escapeHtml(set.name)}')">
+                        <span class="material-symbols-outlined">delete_sweep</span>
+                    </button>
+                </div>
             </div>
-            <div>
-                <span class="text-muted" style="font-size: 0.75rem; display: block;">Integridad FK</span>
-                <span class="mono" style="color: var(--secondary); font-size: 0.8rem;">Cascade Active</span>
-            </div>
-            </div>
-        </div>
-        <div class="set-card-actions">
-            <span class="text-muted mono" style="font-size: 0.75rem;">ON DELETE CASCADE</span>
-            <div>
-            <button class="btn-icon" title="Editar" onclick="openEditSetModal(${set.id})">
-                <span class="material-symbols-outlined">edit</span>
-            </button>
-            <button class="btn-icon danger" title="Eliminar en cascada" onclick="requestDeleteSet(${set.id}, '${escapeHtml(set.name)}')">
-                <span class="material-symbols-outlined">delete_sweep</span>
-            </button>
-            </div>
-        </div>
         </article>
-    `).join('');
+        `).join('');
     },
 
     // Renderiza el catálogo de cartas
@@ -78,12 +115,12 @@ const UI = {
 
         if (cards.length === 0) {
             container.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: var(--bg-surface-card); border-radius: var(--radius-lg);">
-            <span class="material-symbols-outlined" style="font-size: 40px; color: var(--text-muted); margin-bottom: 0.5rem;">style</span>
-            <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;">No se encontraron cartas</h4>
-            <p style="color: var(--text-muted); font-size: 0.85rem;">Prueba con otros términos de búsqueda o registra una nueva carta.</p>
-        </div>
-        `;
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: var(--bg-surface-card); border-radius: var(--radius-lg);">
+                <span class="material-symbols-outlined" style="font-size: 40px; color: var(--text-muted); margin-bottom: 0.5rem;">style</span>
+                <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;">No se encontraron cartas</h4>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Prueba con otros términos de búsqueda o registra una nueva carta.</p>
+            </div>
+            `;
             return;
         }
 
@@ -93,50 +130,55 @@ const UI = {
             const collectorNum = String(card.id).padStart(3, '0');
             const formattedMana = formatManaSymbols(card.mana_cost);
             const ptBadge = (card.power !== null && card.toughness !== null && card.power !== '' && card.toughness !== '')
-                ? `<div class="card-pt">${escapeHtml(card.power)}/${escapeHtml(card.toughness)}</div>`
+                ? `<div class="card-pt" title="Fuerza / Resistencia">P/T ${escapeHtml(card.power)}/${escapeHtml(card.toughness)}</div>`
                 : '';
 
-            // Imagen recortada automática desde Scryfall por nombre
             const artUrl = `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(card.name)}&format=image&version=art_crop`;
 
             return `
-        <article class="card-item">
-            <div>
-                <div class="card-top">
-                    <h3 class="card-name">${escapeHtml(card.name)}</h3>
-                    ${card.mana_cost ? `<div class="card-mana-group">${formattedMana}</div>` : ''}
-                </div>
+            <article class="card-item">
+                <div>
+                    <div class="card-top">
+                        <h3 class="card-name">${escapeHtml(card.name)}</h3>
+                        ${card.mana_cost ? `<div class="card-mana-group">${formattedMana}</div>` : ''}
+                    </div>
 
-                <div class="card-art-container">
-                    <img 
-                        src="${artUrl}" 
-                        alt="${escapeHtml(card.name)}" 
-                        class="card-art-img"
-                        loading="lazy"
-                        onerror="this.parentElement.style.display='none'"
-                    />
-                </div>
+                    <div class="card-art-container">
+                        <img 
+                            src="${artUrl}" 
+                            alt="${escapeHtml(card.name)}" 
+                            class="card-art-img"
+                            loading="lazy"
+                            onerror="this.parentElement.style.display='none'"
+                        />
+                    </div>
 
-                <p class="card-type">${escapeHtml(card.type_line)}</p>
-            </div>
-            <div>
-                <div class="card-bottom-info">
-                    <span class="rarity-badge ${rarityClass}">${escapeHtml(card.rarity)}</span>
-                    <span class="text-muted mono" style="font-size: 0.8rem;">${escapeHtml(setCode)} · #${collectorNum}</span>
-                    ${ptBadge}
+                    <p class="card-type">${escapeHtml(card.type_line)}</p>
+
+                    <!-- Cuadro de texto de reglas oficial -->
+                    <div class="card-oracle-text" id="oracle-${card.id}"></div>
                 </div>
-                <div class="card-actions">
-                    <button class="btn-icon" title="Editar" onclick="openEditCardModal(${card.id})">
-                    <span class="material-symbols-outlined">edit</span>
-                    </button>
-                    <button class="btn-icon danger" title="Eliminar" onclick="deleteCard(${card.id})">
-                    <span class="material-symbols-outlined">delete</span>
-                    </button>
+                <div>
+                    <div class="card-bottom-info">
+                        <span class="rarity-badge ${rarityClass}">${escapeHtml(card.rarity)}</span>
+                        <span class="text-muted mono" style="font-size: 0.8rem;">${escapeHtml(setCode)} · #${collectorNum}</span>
+                        ${ptBadge}
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-icon" title="Editar" onclick="openEditCardModal(${card.id})">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button class="btn-icon danger" title="Eliminar" onclick="deleteCard(${card.id})">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </article>
-        `;
+            </article>
+            `;
         }).join('');
+
+        // Carga los textos de reglas para las cartas renderizadas
+        cards.forEach(card => loadCardOracle(card));
     },
 
     // Rellena los selectores desplegables de colecciones
