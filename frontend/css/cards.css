@@ -258,7 +258,7 @@
 /* Recorte de la ilustración*/
 .card-art-container {
   width: 100%;
-  height: 190px; 
+  height: 200px; 
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: rgba(0, 0, 0, 0.5);
@@ -323,6 +323,29 @@
   border-radius: var(--radius-sm);
   padding: 6px;
   flex-shrink: 0;
+}
+
+/* Banner de arte para la tarjeta de colección */
+.set-art-container {
+  width: 100%;
+  height: 200px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.4);
+  margin-bottom: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.set-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.set-card:hover .set-art-img {
+  transform: scale(1.04);
 }
 
 .set-symbol-svg {

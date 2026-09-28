@@ -69,52 +69,69 @@ const UI = {
             return;
         }
 
-        container.innerHTML = sets.map(set => `
-        <article class="set-card">
-            <div>
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-    <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <div class="set-icon-badge">
-            <img 
-                src="https://svgs.scryfall.io/sets/${escapeHtml(set.code.toLowerCase())}.svg" 
-                alt="${escapeHtml(set.code)}"
-                class="set-symbol-svg"
-                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
-            />
-            <span class="set-badge-code" style="display: none;">${escapeHtml(set.code)}</span>
-        </div>
-        <div>
-            <h3 style="font-size: 1.1rem; font-weight: 700;">${escapeHtml(set.name)}</h3>
-            <span class="text-muted mono" style="font-size: 0.75rem;">
-                ${set.release_date ? `Lanzamiento: ${set.release_date}` : 'Sin fecha'}
-            </span>
-        </div>
-    </div>
-</div>
-                <div class="set-card-stats">
-                    <div>
-                        <span class="text-muted" style="font-size: 0.75rem; display: block;">ID Base de Datos</span>
-                        <span class="mono" style="font-weight: 700; font-size: 1.1rem;">#${set.id}</span>
-                    </div>
-                    <div>
-                        <span class="text-muted" style="font-size: 0.75rem; display: block;">Integridad FK</span>
-                        <span class="mono" style="color: var(--secondary); font-size: 0.8rem;">Cascade Active</span>
-                    </div>
-                </div>
-            </div>
-            <div class="set-card-actions">
-                <span class="text-muted mono" style="font-size: 0.75rem;">ON DELETE CASCADE</span>
+        container.innerHTML = sets.map(set => {
+            const setCodeClean = escapeHtml(set.code.toLowerCase());
+            const artUrl = `https://api.scryfall.com/cards/random?q=set%3A${setCodeClean}&format=image&version=art_crop`;
+
+            return `
+            <article class="set-card">
                 <div>
-                    <button class="btn-icon" title="Editar" onclick="openEditSetModal(${set.id})">
-                        <span class="material-symbols-outlined">edit</span>
-                    </button>
-                    <button class="btn-icon danger" title="Eliminar en cascada" onclick="requestDeleteSet(${set.id}, '${escapeHtml(set.name)}')">
-                        <span class="material-symbols-outlined">delete_sweep</span>
-                    </button>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div class="set-icon-badge">
+                                <img 
+                                    src="https://svgs.scryfall.io/sets/${setCodeClean}.svg" 
+                                    alt="${escapeHtml(set.code)}"
+                                    class="set-symbol-svg"
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+                                />
+                                <span class="set-badge-code" style="display: none;">${escapeHtml(set.code)}</span>
+                            </div>
+                            <div>
+                                <h3 style="font-size: 1.1rem; font-weight: 700;">${escapeHtml(set.name)}</h3>
+                                <span class="text-muted mono" style="font-size: 0.75rem;">
+                                    ${set.release_date ? `Lanzamiento: ${set.release_date}` : 'Sin fecha'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Banner de ilustración de la colección -->
+                    <div class="set-art-container">
+                        <img 
+                            src="${artUrl}" 
+                            alt="${escapeHtml(set.name)}" 
+                            class="set-art-img"
+                            loading="lazy"
+                            onerror="this.parentElement.style.display='none'"
+                        />
+                    </div>
+
+                    <div class="set-card-stats">
+                        <div>
+                            <span class="text-muted" style="font-size: 0.75rem; display: block;">ID Base de Datos</span>
+                            <span class="mono" style="font-weight: 700; font-size: 1.1rem;">#${set.id}</span>
+                        </div>
+                        <div>
+                            <span class="text-muted" style="font-size: 0.75rem; display: block;">Integridad FK</span>
+                            <span class="mono" style="color: var(--secondary); font-size: 0.8rem;">Cascade Active</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </article>
-        `).join('');
+                <div class="set-card-actions">
+                    <span class="text-muted mono" style="font-size: 0.75rem;">ON DELETE CASCADE</span>
+                    <div>
+                        <button class="btn-icon" title="Editar" onclick="openEditSetModal(${set.id})">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button class="btn-icon danger" title="Eliminar en cascada" onclick="requestDeleteSet(${set.id}, '${escapeHtml(set.name)}')">
+                            <span class="material-symbols-outlined">delete_sweep</span>
+                        </button>
+                    </div>
+                </div>
+            </article>
+            `;
+        }).join('');
     },
 
     // Renderiza el catálogo de cartas
