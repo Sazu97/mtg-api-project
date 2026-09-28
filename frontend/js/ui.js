@@ -21,19 +21,33 @@ function formatManaSymbols(cost) {
 /* Caché en memoria para no repetir peticiones a Scryfall */
 const oracleCache = new Map();
 
-/* Consulta el texto oficial de reglas de la carta y lo renderiza */
+/* Consulta el texto oficial de reglas y datos de coleccionista de la carta */
 function loadCardOracle(card) {
-    const container = document.getElementById(`oracle-${card.id}`);
-    if (!container) return;
+    const oracleContainer = document.getElementById(`oracle-${card.id}`);
+    const collectorBadge = document.getElementById(`collector-${card.id}`);
+
+    function applyCardData(data) {
+        // 1. Texto Oracle
+        if (oracleContainer) {
+            if (data && data.oracle_text) {
+                oracleContainer.innerHTML = formatManaSymbols(escapeHtml(data.oracle_text)).replace(/\n/g, '<br>');
+            } else {
+                oracleContainer.style.display = 'none';
+            }
+        }
+
+        // 2. Formato oficial de coleccionista: SET · [R] [0196]
+        if (collectorBadge && data && data.collector_number) {
+            const setCode = card.set ? card.set.code : `ID:${card.set_id}`;
+            const rarityCode = (data.rarity || card.rarity || 'C')[0].toUpperCase();
+            const formattedNum = String(data.collector_number).padStart(4, '0');
+            collectorBadge.textContent = `${setCode} · ${rarityCode} ${formattedNum}`;
+        }
+    }
 
     // Si ya lo consultamos antes, lo sacamos de la caché local
     if (oracleCache.has(card.name)) {
-        const text = oracleCache.get(card.name);
-        if (text) {
-            container.innerHTML = formatManaSymbols(escapeHtml(text)).replace(/\n/g, '<br>');
-        } else {
-            container.style.display = 'none';
-        }
+        applyCardData(oracleCache.get(card.name));
         return;
     }
 
@@ -41,17 +55,12 @@ function loadCardOracle(card) {
     fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(card.name)}`)
         .then(res => res.ok ? res.json() : null)
         .then(data => {
-            if (data && data.oracle_text) {
-                oracleCache.set(card.name, data.oracle_text);
-                container.innerHTML = formatManaSymbols(escapeHtml(data.oracle_text)).replace(/\n/g, '<br>');
-            } else {
-                oracleCache.set(card.name, null);
-                container.style.display = 'none';
-            }
+            oracleCache.set(card.name, data);
+            applyCardData(data);
         })
         .catch(() => {
             oracleCache.set(card.name, null);
-            container.style.display = 'none';
+            applyCardData(null);
         });
 }
 
@@ -186,7 +195,7 @@ const UI = {
                 <div>
                     <div class="card-bottom-info">
                         <span class="rarity-badge ${rarityClass}">${escapeHtml(card.rarity)}</span>
-                        <span class="text-muted mono" style="font-size: 0.8rem;">${escapeHtml(setCode)} · #${collectorNum}</span>
+                        <span class="text-muted mono" style="font-size: 0.8rem;" id="collector-${card.id}">${escapeHtml(setCode)} · #${collectorNum}</span>
                         ${ptBadge}
                     </div>
                     <div class="card-actions">
