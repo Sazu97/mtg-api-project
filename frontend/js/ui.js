@@ -73,16 +73,24 @@ const UI = {
         <article class="set-card">
             <div>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <div class="set-badge-code">${escapeHtml(set.code)}</div>
-                        <div>
-                            <h3 style="font-size: 1.1rem; font-weight: 700;">${escapeHtml(set.name)}</h3>
-                            <span class="text-muted mono" style="font-size: 0.75rem;">
-                                ${set.release_date ? `Lanzamiento: ${set.release_date}` : 'Sin fecha'}
-                            </span>
-                        </div>
-                    </div>
-                </div>
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div class="set-icon-badge">
+            <img 
+                src="https://svgs.scryfall.io/sets/${escapeHtml(set.code.toLowerCase())}.svg" 
+                alt="${escapeHtml(set.code)}"
+                class="set-symbol-svg"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+            />
+            <span class="set-badge-code" style="display: none;">${escapeHtml(set.code)}</span>
+        </div>
+        <div>
+            <h3 style="font-size: 1.1rem; font-weight: 700;">${escapeHtml(set.name)}</h3>
+            <span class="text-muted mono" style="font-size: 0.75rem;">
+                ${set.release_date ? `Lanzamiento: ${set.release_date}` : 'Sin fecha'}
+            </span>
+        </div>
+    </div>
+</div>
                 <div class="set-card-stats">
                     <div>
                         <span class="text-muted" style="font-size: 0.75rem; display: block;">ID Base de Datos</span>
