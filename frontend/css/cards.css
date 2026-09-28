@@ -248,6 +248,48 @@
   font-weight: 700;
 }
 
+.card-mana-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 1rem;
+}
+
+/* 1. Recorte de la ilustración más alto y protagonista */
+.card-art-container {
+  width: 100%;
+  height: 190px; 
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.5);
+  margin: 0.75rem 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+/* 2. Insignia de Fuerza / Resistencia estilo MTG */
+.card-pt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
 /* ==========================================================================
     5. MEDIA QUERIES (CARDS & TOOLBAR)
    ========================================================================== */
@@ -280,3 +322,4 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+

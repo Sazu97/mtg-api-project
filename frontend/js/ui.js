@@ -9,6 +9,15 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+/* Convierte texto tipo {2}{U}{B} en iconos vectoriales oficiales de Mana Font */
+function formatManaSymbols(cost) {
+    if (!cost) return "";
+    return cost.replace(/\{([a-zA-Z0-9/]+)\}/g, (_, sym) => {
+        const clean = sym.toLowerCase().replace("/", "");
+        return `<i class="ms ms-${clean} ms-cost ms-shadow"></i>`;
+    });
+}
+
 const UI = {
     // Renderiza el listado de colecciones
     renderSets: (sets, container) => {
@@ -81,23 +90,39 @@ const UI = {
         container.innerHTML = cards.map(card => {
             const rarityClass = `rarity-${card.rarity.toLowerCase()}`;
             const setCode = card.set ? card.set.code : `ID:${card.set_id}`;
+            const collectorNum = String(card.id).padStart(3, '0');
+            const formattedMana = formatManaSymbols(card.mana_cost);
             const ptBadge = (card.power !== null && card.toughness !== null && card.power !== '' && card.toughness !== '')
                 ? `<div class="card-pt">${escapeHtml(card.power)}/${escapeHtml(card.toughness)}</div>`
                 : '';
+
+            // Imagen recortada automática desde Scryfall por nombre
+            const artUrl = `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(card.name)}&format=image&version=art_crop`;
 
             return `
         <article class="card-item">
             <div>
                 <div class="card-top">
                     <h3 class="card-name">${escapeHtml(card.name)}</h3>
-                    ${card.mana_cost ? `<span class="card-mana">${escapeHtml(card.mana_cost)}</span>` : ''}
+                    ${card.mana_cost ? `<div class="card-mana-group">${formattedMana}</div>` : ''}
                 </div>
+
+                <div class="card-art-container">
+                    <img 
+                        src="${artUrl}" 
+                        alt="${escapeHtml(card.name)}" 
+                        class="card-art-img"
+                        loading="lazy"
+                        onerror="this.parentElement.style.display='none'"
+                    />
+                </div>
+
                 <p class="card-type">${escapeHtml(card.type_line)}</p>
             </div>
             <div>
                 <div class="card-bottom-info">
                     <span class="rarity-badge ${rarityClass}">${escapeHtml(card.rarity)}</span>
-                    <span class="text-muted mono" style="font-size: 0.8rem;">${escapeHtml(setCode)}</span>
+                    <span class="text-muted mono" style="font-size: 0.8rem;">${escapeHtml(setCode)} · #${collectorNum}</span>
                     ${ptBadge}
                 </div>
                 <div class="card-actions">
