@@ -21,48 +21,6 @@ function formatManaSymbols(cost) {
     });
 }
 
-/* Caché en memoria para optimizar peticiones a Scryfall */
-const oracleCache = new Map();
-
-/* Consulta el texto oficial de reglas y datos de coleccionista de la carta */
-function loadCardOracle(card) {
-    const oracleContainer = document.getElementById(`oracle-${card.id}`);
-    const collectorBadge = document.getElementById(`collector-${card.id}`);
-
-    function applyCardData(data) {
-        if (oracleContainer) {
-            if (data && data.oracle_text) {
-                oracleContainer.innerHTML = formatManaSymbols(escapeHtml(data.oracle_text)).replace(/\n/g, '<br>');
-            } else {
-                oracleContainer.style.display = 'none';
-            }
-        }
-
-        if (collectorBadge && data && data.collector_number) {
-            const setCode = card.set ? card.set.code : `ID:${card.set_id}`;
-            const rarityCode = (data.rarity || card.rarity || 'C')[0].toUpperCase();
-            const formattedNum = String(data.collector_number).padStart(4, '0');
-            collectorBadge.textContent = `${setCode} · ${rarityCode} ${formattedNum}`;
-        }
-    }
-
-    if (oracleCache.has(card.name)) {
-        applyCardData(oracleCache.get(card.name));
-        return;
-    }
-
-    fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(card.name)}`)
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-            oracleCache.set(card.name, data);
-            applyCardData(data);
-        })
-        .catch(() => {
-            oracleCache.set(card.name, null);
-            applyCardData(null);
-        });
-}
-
 const UI = {
     renderSets: (sets, container) => {
         if (!container) return;
@@ -165,6 +123,11 @@ const UI = {
 
             const artUrl = `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(card.name)}&format=image&version=art_crop`;
 
+            // Formatear el texto de reglas almacenado en base de datos
+            const oracleHtml = card.oracle_text
+                ? `<div class="card-oracle-text">${formatManaSymbols(escapeHtml(card.oracle_text)).replace(/\n/g, '<br>')}</div>`
+                : '';
+
             return `
             <article class="card-item">
                 <div>
@@ -184,12 +147,12 @@ const UI = {
                     </div>
 
                     <p class="card-type">${escapeHtml(card.type_line)}</p>
-                    <div class="card-oracle-text" id="oracle-${card.id}"></div>
+                    ${oracleHtml}
                 </div>
                 <div>
                     <div class="card-bottom-info">
                         <span class="rarity-badge ${rarityClass}">${escapeHtml(card.rarity)}</span>
-                        <span class="text-muted mono" style="font-size: 0.8rem;" id="collector-${card.id}">${escapeHtml(setCode)} · #${collectorNum}</span>
+                        <span class="text-muted mono" style="font-size: 0.8rem;">${escapeHtml(setCode)} · #${collectorNum}</span>
                         ${ptBadge}
                     </div>
                     <div class="card-actions">
@@ -204,8 +167,6 @@ const UI = {
             </article>
             `;
         }).join('');
-
-        cards.forEach(card => loadCardOracle(card));
     },
 
     populateDropdowns: (sets, filterSelect, formSelect) => {

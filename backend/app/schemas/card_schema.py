@@ -9,6 +9,7 @@ class CardBase(BaseModel):
     rarity: str = Field(..., min_length=1, max_length=20)
     power: str | None = Field(default=None, max_length=10)
     toughness: str | None = Field(default=None, max_length=10)
+    oracle_text: str | None = Field(default=None, description="Texto de reglas oficial de Scryfall")
 
     @field_validator("name", "type_line", "rarity")
     @classmethod
@@ -30,6 +31,7 @@ class CardUpdate(BaseModel):
     rarity: str | None = Field(default=None, min_length=1, max_length=20)
     power: str | None = Field(default=None, max_length=10)
     toughness: str | None = Field(default=None, max_length=10)
+    oracle_text: str | None = Field(default=None)
     set_id: int | None = Field(default=None, gt=0)
 
 
@@ -39,3 +41,14 @@ class CardResponse(CardBase):
     set: SetResponse | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ScryfallCardResponse(BaseModel):
+    name: str
+    mana_cost: str | None = None
+    type_line: str
+    rarity: str
+    power: str | None = None
+    toughness: str | None = None
+    oracle_text: str | None = None
+    image_url: str | None = None

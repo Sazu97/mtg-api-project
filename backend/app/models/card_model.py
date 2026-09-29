@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from backend.app.core.database import Base
 
@@ -13,6 +13,7 @@ class Card(Base):
     rarity = Column(String(20), nullable=False)
     power = Column(String(10), nullable=True)
     toughness = Column(String(10), nullable=True)
+    oracle_text = Column(Text, nullable=True)
 
     set_id = Column(Integer, ForeignKey("sets.id", ondelete="CASCADE"), nullable=False)
 

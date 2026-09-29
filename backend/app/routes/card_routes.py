@@ -2,7 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from backend.app.core.database import get_db
-from backend.app.schemas.card_schema import CardCreate, CardResponse, CardUpdate
+from backend.app.schemas.card_schema import (
+    CardCreate,
+    CardResponse,
+    CardUpdate,
+    ScryfallCardResponse,
+)
 from backend.app.controller import card_controller, set_controller
 
 router = APIRouter()
@@ -22,6 +27,18 @@ def read_cards(
     db: Session = Depends(get_db)
 ):
     return card_controller.get_cards(db, name=name, set_id=set_id, skip=skip, limit=limit)
+
+
+@router.get(
+    "/scryfall-info",
+    response_model=ScryfallCardResponse,
+    summary="Consultar datos de carta en Scryfall",
+    description="Obtiene datos oficiales y autocompleta atributos consultando la API pública de Scryfall por nombre."
+)
+def get_scryfall_card_info(
+    name: str = Query(..., min_length=1, description="Nombre aproximado o exacto de la carta")
+):
+    return card_controller.fetch_scryfall_card(name)
 
 
 @router.get(
