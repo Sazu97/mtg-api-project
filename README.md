@@ -1,6 +1,6 @@
 # 🃏 MTG Collection Vault
 
-API REST y panel interactivo para la catalogación y gestión de cartas y colecciones de *Magic: The Gathering*. La aplicación cuenta con una arquitectura desacoplada por capas en FastAPI, persistencia relacional en SQLite con integridad referencial estricta, validación de esquemas con Pydantic v2 e integración asíncrona con la API de Scryfall.
+API REST y panel interactivo para la catalogación y gestión de cartas y colecciones de *Magic: The Gathering*. La aplicación cuenta con una arquitectura desacoplada por capas en FastAPI, persistencia relacional en SQLite con integridad referencial estricta, validación de esquemas con Pydantic v2 y enriquecimiento automático de datos en segundo plano mediante la API de Scryfall.
 
 ---
 
@@ -9,7 +9,7 @@ API REST y panel interactivo para la catalogación y gestión de cartas y colecc
 * **Backend:** Python 3.10+, FastAPI, Pydantic v2, SQLAlchemy ORM.
 * **Persistencia:** SQLite con enforcement estricto de claves foráneas (`PRAGMA foreign_keys=ON`).
 * **Frontend:** HTML5 semántico, CSS3 modular (variables y diseño responsive), JavaScript Vanilla (ES6+), Axios.
-* **APIs Externas:** Scryfall REST API (renderizado dinámico de arte oficial y textos de reglas Oracle).
+* **APIs Externas:** Scryfall REST API (enriquecimiento automático de reglas oficiales en backend y renderizado de arte).
 * **Herramientas de desarrollo:** Git, Uvicorn, Dotenv.
 
 ---
@@ -20,7 +20,7 @@ API REST y panel interactivo para la catalogación y gestión de cartas y colecc
 mtg-api/
 ├── backend/
 │   └── app/
-│       ├── controller/            # Capa de lógica de negocio y persistencia
+│       ├── controller/            # Capa de lógica de negocio, persistencia y proxy Scryfall
 │       │   ├── card_controller.py
 │       │   └── set_controller.py
 │       ├── core/                  # Configuración del motor y base de datos
@@ -39,13 +39,13 @@ mtg-api/
 ├── frontend/
 │   ├── css/                       # Estilos modulares desacoplados
 │   │   ├── base.css               # Variables, tokens de color y layout global
-│   │   ├── cards.css              # Tarjetas, rejillas y visualización Scryfall
+│   │   ├── cards.css              # Tarjetas, rejillas y visualización
 │   │   └── feedback.css           # Modales, tooltips de ayuda e insignias
 │   ├── js/                        # JavaScript Vanilla modular
 │   │   ├── api.js                 # Cliente unificado con Axios
-│   │   ├── app.js                 # Controlador principal y eventos
+│   │   ├── app.js                 # Controlador principal y eventos del DOM
 │   │   ├── feedback.js            # Sistema de notificaciones toast y modales
-│   │   └── ui.js                  # Renderizado en DOM y caché en memoria
+│   │   └── ui.js                  # Renderizado en DOM y parseo vectorial de símbolos
 │   └── index.html                 # Estructura semántica de la aplicación
 ├── .env                           # Variables de entorno locales
 ├── .gitignore                     # Exclusiones de Git (entornos virtuales, db, cache)
@@ -53,6 +53,8 @@ mtg-api/
 ├── README.md                      # Documentación del proyecto
 └── requirements.txt               # Dependencias de Python del proyecto
 ```
+
+---
 
 ## 📐 Diagrama Entidad-Relación (DER)
 
@@ -77,6 +79,7 @@ erDiagram
         string rarity "Rareza (common, uncommon, rare, mythic)"
         string power "Fuerza de la criatura"
         string toughness "Resistencia de la criatura"
+        text oracle_text "Texto de reglas oficial (Scryfall)"
         int set_id FK "Clave foránea con ON DELETE CASCADE"
     }
 ```
@@ -141,7 +144,7 @@ uvicorn backend.app.main:app --reload
 | :--- | :--- | :--- | :--- |
 | `GET` | `/cards/` | `200 OK` | Listar cartas (soporta filtros `name`, `set_id`, `skip`, `limit`) |
 | `GET` | `/cards/{id}` | `200 OK` | Obtener detalle de una carta por su ID |
-| `POST` | `/cards/` | `201 Created` | Crear carta vinculada a un set existente |
+| `POST` | `/cards/` | `201 Created` | Crear carta vinculada a un set (enriquece `oracle_text` automáticamente) |
 | `PUT` | `/cards/{id}` | `200 OK` | Actualizar atributos de una carta |
 | `DELETE` | `/cards/{id}` | `204 No Content` | Eliminar una carta específica |
 
@@ -168,7 +171,9 @@ uvicorn backend.app.main:app --reload
 }
 ```
 
-### 2. Registrar una nueva carta
+### 2. Registrar una nueva carta (con auto-enriquecimiento de reglas)
+Al registrar la carta, el backend contacta en segundo plano con Scryfall para recuperar y persistir el texto oficial de reglas (`oracle_text`) sin requerir intervención en el cliente:
+
 **Petición:** `POST /cards/`
 ```json
 {
@@ -191,6 +196,7 @@ uvicorn backend.app.main:app --reload
   "rarity": "rare",
   "power": "2",
   "toughness": "3",
+  "oracle_text": "Fear (This creature can't be blocked except by artifact creatures and/or black creatures.)\n{T}, Sacrifice a Rat: Create X 1/1 black Rat creature tokens, where X is the number of Rats you control.",
   "set_id": 1,
   "set": {
     "id": 1,
@@ -202,7 +208,7 @@ uvicorn backend.app.main:app --reload
 ```
 
 ### 3. Consultar cartas con filtro por nombre
-**Petición:** `GET /cards/?name=Marrow`
+**Petición:** `GET /cards/?name=Marrow`  
 **Respuesta:** `200 OK`
 ```json
 [
@@ -214,6 +220,7 @@ uvicorn backend.app.main:app --reload
     "rarity": "rare",
     "power": "2",
     "toughness": "3",
+    "oracle_text": "Fear (This creature can't be blocked except by artifact creatures and/or black creatures.)\n{T}, Sacrifice a Rat: Create X 1/1 black Rat creature tokens, where X is the number of Rats you control.",
     "set_id": 1,
     "set": {
       "id": 1,
