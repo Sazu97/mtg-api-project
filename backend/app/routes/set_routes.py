@@ -2,11 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from backend.app.core.database import get_db
-from backend.app.schemas.set import SetCreate, SetResponse, SetUpdate
-from backend.app.crud import set as crud_set
+from backend.app.schemas.set_schema import SetCreate, SetResponse, SetUpdate
+from backend.app.crud import set_crud as crud_set
 
 router = APIRouter()
-
 
 @router.get(
     "/",

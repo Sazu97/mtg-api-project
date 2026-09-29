@@ -2,8 +2,8 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from backend.app.models.set import Set
-from backend.app.schemas.set import SetCreate, SetUpdate
+from backend.app.models.set_model import Set
+from backend.app.schemas.set_schema import SetCreate, SetUpdate
 
 
 def get_set_by_id(db: Session, set_id: int) -> Set | None:

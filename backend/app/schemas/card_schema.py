@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from backend.app.schemas.set import SetResponse
+from backend.app.schemas.set_schema import SetResponse
 
 
 class CardBase(BaseModel):

@@ -2,22 +2,30 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# Importaciones de configuración y motor de base de datos
 from backend.app.core.config import APP_TITLE, APP_VERSION, APP_DESCRIPTION
 from backend.app.core.database import engine, Base
-from backend.app.routes import sets, cards
+
+# Importación de los módulos de rutas refactorizados
+from backend.app.routes import set_routes, card_routes
 
 
+# ==============================================================================
+# 1. GESTOR DE CICLO DE VIDA (LIFESPAN)
+# ==============================================================================
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Gestor del ciclo de vida (Lifespan).
-    Crea las tablas en SQLite automáticamente al arrancar la aplicación.
+    Se ejecuta al iniciar el servidor antes de aceptar peticiones HTTP.
+    Crea automáticamente las tablas en SQLite si todavía no existen.
     """
     Base.metadata.create_all(bind=engine)
     yield
 
 
-# Inicialización de la aplicación FastAPI
+# ==============================================================================
+# 2. INICIALIZACIÓN DE LA INSTANCIA PRINCIPAL DE FASTAPI
+# ==============================================================================
 app = FastAPI(
     title=APP_TITLE,
     version=APP_VERSION,
@@ -25,24 +33,35 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Middleware de CORS
+
+# ==============================================================================
+# 3. MIDDLEWARE DE CORS (Cross-Origin Resource Sharing)
+# ==============================================================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["*"],    
+    allow_credentials=True,   
+    allow_methods=["*"],       
+    allow_headers=["*"],       
 )
 
-# Registrar routers con sus prefijos y tags
-app.include_router(sets.router, prefix="/sets", tags=["Sets"])
-app.include_router(cards.router, prefix="/cards", tags=["Cards"])
+
+# ==============================================================================
+# 4. REGISTRO Y MONTAJE DE ROUTERS
+# ==============================================================================
+app.include_router(set_routes.router, prefix="/sets", tags=["Sets"])
+
+app.include_router(card_routes.router, prefix="/cards", tags=["Cards"])
 
 
+# ==============================================================================
+# 5. RUTA RAÍZ / HEALTH CHECK
+# ==============================================================================
 @app.get("/", tags=["Health Check"])
 def read_root():
     """
-    Ruta raíz para verificar que el servidor está online.
+    Ruta de comprobación rápida para verificar que el servidor está online
+    y proporcionar enlaces directos a la documentación interactiva.
     """
     return {
         "status": "online",

@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from backend.app.core.database import get_db
-from backend.app.schemas.card import CardCreate, CardResponse, CardUpdate
-from backend.app.crud import card as crud_card
-from backend.app.crud import set as crud_set
+from backend.app.schemas.card_schema import CardCreate, CardResponse, CardUpdate
+from backend.app.crud import card_crud as crud_card
+from backend.app.crud import set_crud as crud_set
 
 router = APIRouter()
 

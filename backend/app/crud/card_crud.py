@@ -2,8 +2,8 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from backend.app.models.card import Card
-from backend.app.schemas.card import CardCreate, CardUpdate
+from backend.app.models.card_model import Card
+from backend.app.schemas.card_schema import CardCreate, CardUpdate
 
 
 def get_card_by_id(db: Session, card_id: int) -> Card | None:
