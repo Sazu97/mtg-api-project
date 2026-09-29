@@ -52,6 +52,7 @@ mtg-api/
 ├── mtg.db                         # Base de datos relacional SQLite
 ├── README.md                      # Documentación del proyecto
 └── requirements.txt               # Dependencias de Python del proyecto
+```
 
 ## 📐 Diagrama Entidad-Relación (DER)
 
