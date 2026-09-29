@@ -1,34 +1,41 @@
-from typing import Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from backend.app.schemas.set import SetResponse
 
-# Campos base de una carta
+
 class CardBase(BaseModel):
-    name: str
-    mana_cost: Optional[str] = None
-    type_line: str
-    rarity: str
-    power: Optional[str] = None
-    toughness: Optional[str] = None
+    name: str = Field(..., min_length=1, max_length=120)
+    mana_cost: str | None = Field(default=None, max_length=30)
+    type_line: str = Field(..., min_length=1, max_length=150)
+    rarity: str = Field(..., min_length=1, max_length=20)
+    power: str | None = Field(default=None, max_length=10)
+    toughness: str | None = Field(default=None, max_length=10)
 
-# Esquema para crear una carta
+    @field_validator("name", "type_line", "rarity")
+    @classmethod
+    def ensure_not_blank(cls, v: str) -> str:
+        cleaned = v.strip()
+        if not cleaned:
+            raise ValueError("Este campo no puede estar compuesto únicamente de espacios.")
+        return cleaned
+
+
 class CardCreate(CardBase):
-    set_id: int
+    set_id: int = Field(..., gt=0, description="ID de la colección a la que pertenece")
 
-# Esquema para actualizar una carta
+
 class CardUpdate(BaseModel):
-    name: Optional[str] = None
-    mana_cost: Optional[str] = None
-    type_line: Optional[str] = None
-    rarity: Optional[str] = None
-    power: Optional[str] = None
-    toughness: Optional[str] = None
-    set_id: Optional[int] = None
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    mana_cost: str | None = Field(default=None, max_length=30)
+    type_line: str | None = Field(default=None, min_length=1, max_length=150)
+    rarity: str | None = Field(default=None, min_length=1, max_length=20)
+    power: str | None = Field(default=None, max_length=10)
+    toughness: str | None = Field(default=None, max_length=10)
+    set_id: int | None = Field(default=None, gt=0)
 
-# Esquema de respuesta completo con relación anidada
+
 class CardResponse(CardBase):
     id: int
     set_id: int
-    set: Optional[SetResponse] = None
+    set: SetResponse | None = None
 
     model_config = ConfigDict(from_attributes=True)

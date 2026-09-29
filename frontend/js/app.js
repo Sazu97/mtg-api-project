@@ -44,7 +44,6 @@ async function loadCards() {
 
         state.cards = await CardsAPI.getAll(params);
 
-        // Filtro local por rareza si está seleccionada
         const filtered = state.filters.rarity
             ? state.cards.filter(c => c.rarity.toLowerCase() === state.filters.rarity.toLowerCase())
             : state.cards;
@@ -68,6 +67,12 @@ function updatePaginationUI() {
 }
 
 /* --- Operaciones CRUD: Sets --- */
+function resetSetForm() {
+    document.getElementById('set-form').reset();
+    document.getElementById('set-id-field').value = '';
+    document.getElementById('modal-set-title').innerText = 'Registrar Nueva Colección';
+}
+
 async function handleSetSubmit(e) {
     e.preventDefault();
     const id = document.getElementById('set-id-field').value;
@@ -107,9 +112,13 @@ async function openEditSetModal(id) {
     }
 }
 
-function requestDeleteSet(id, name) {
+// Búsqueda segura en el estado en lugar de interpolar strings en HTML
+function requestDeleteSet(id) {
+    const targetSet = state.sets.find(s => s.id === id);
+    const setName = targetSet ? targetSet.name : 'esta colección';
+    
     state.setPendingDelete = id;
-    document.getElementById('danger-set-name').innerText = name;
+    document.getElementById('danger-set-name').innerText = setName;
     openModal('danger-modal');
 }
 
@@ -128,6 +137,12 @@ async function confirmCascadeDelete() {
 }
 
 /* --- Operaciones CRUD: Cards --- */
+function resetCardForm() {
+    document.getElementById('card-form').reset();
+    document.getElementById('card-id').value = '';
+    document.getElementById('modal-card-title').innerText = 'Registrar Nueva Carta';
+}
+
 async function handleCardSubmit(e) {
     e.preventDefault();
     const id = document.getElementById('card-id').value;
@@ -191,6 +206,23 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('card-form').addEventListener('submit', handleCardSubmit);
     document.getElementById('btn-confirm-delete').addEventListener('click', confirmCascadeDelete);
 
+    // Conectar botones de apertura de modales "Nuevo" para limpiar formularios previos
+    const btnNewSet = document.getElementById('btn-open-set-modal');
+    if (btnNewSet) {
+        btnNewSet.addEventListener('click', () => {
+            resetSetForm();
+            openModal('set-modal');
+        });
+    }
+
+    const btnNewCard = document.getElementById('btn-open-card-modal');
+    if (btnNewCard) {
+        btnNewCard.addEventListener('click', () => {
+            resetCardForm();
+            openModal('card-modal');
+        });
+    }
+
     let debounceTimer;
     searchInput.addEventListener('input', (e) => {
         clearTimeout(debounceTimer);
@@ -229,14 +261,12 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCards();
 });
 
-
 /* --- Detector de sección activa para el menú superior --- */
 function setupNavSpy() {
     const navItems = document.querySelectorAll('.nav-links .nav-item');
     const sections = document.querySelectorAll('section[id]');
 
     function updateActiveNav() {
-        // 1. Si el usuario llega al fondo de la página, activa directamente la última sección
         const isBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 60);
 
         if (isBottom) {
@@ -249,7 +279,6 @@ function setupNavSpy() {
             return;
         }
 
-        // 2. Comprobación normal por posición relativa
         const scrollPosition = window.scrollY + 180;
 
         sections.forEach(section => {

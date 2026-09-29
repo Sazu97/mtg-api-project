@@ -1,5 +1,4 @@
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from backend.app.core.database import get_db
@@ -9,19 +8,28 @@ from backend.app.crud import set as crud_set
 
 router = APIRouter()
 
-# 1. Obtener lista de cartas con filtros
-@router.get("/", response_model=List[CardResponse])
+
+@router.get(
+    "/",
+    response_model=list[CardResponse],
+    summary="Listar cartas con filtros",
+    description="Permite filtrar cartas por nombre o colección con paginación controlada."
+)
 def read_cards(
-    name: Optional[str] = None,
-    set_id: Optional[int] = None,
-    skip: int = 0,
-    limit: int = 100,
+    name: str | None = Query(default=None, description="Filtrar por coincidencia de texto"),
+    set_id: int | None = Query(default=None, description="Filtrar por ID de colección"),
+    skip: int = Query(default=0, ge=0, description="Registros a omitir"),
+    limit: int = Query(default=100, ge=1, le=100, description="Límite máximo por página"),
     db: Session = Depends(get_db)
 ):
     return crud_card.get_cards(db, name=name, set_id=set_id, skip=skip, limit=limit)
 
-# 2. Obtener una carta por ID
-@router.get("/{card_id}", response_model=CardResponse)
+
+@router.get(
+    "/{card_id}",
+    response_model=CardResponse,
+    summary="Obtener una carta por ID"
+)
 def read_card(card_id: int, db: Session = Depends(get_db)):
     db_card = crud_card.get_card_by_id(db, card_id=card_id)
     if not db_card:
@@ -31,8 +39,13 @@ def read_card(card_id: int, db: Session = Depends(get_db)):
         )
     return db_card
 
-# 3. Crear una nueva carta
-@router.post("/", response_model=CardResponse, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/",
+    response_model=CardResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Crear una nueva carta"
+)
 def create_card(card_data: CardCreate, db: Session = Depends(get_db)):
     db_set = crud_set.get_set_by_id(db, set_id=card_data.set_id)
     if not db_set:
@@ -42,8 +55,12 @@ def create_card(card_data: CardCreate, db: Session = Depends(get_db)):
         )
     return crud_card.create_card(db, card_data=card_data)
 
-# 4. Actualizar una carta existente
-@router.put("/{card_id}", response_model=CardResponse)
+
+@router.put(
+    "/{card_id}",
+    response_model=CardResponse,
+    summary="Actualizar una carta existente"
+)
 def update_card(card_id: int, card_data: CardUpdate, db: Session = Depends(get_db)):
     db_card = crud_card.get_card_by_id(db, card_id=card_id)
     if not db_card:
@@ -52,7 +69,6 @@ def update_card(card_id: int, card_data: CardUpdate, db: Session = Depends(get_d
             detail=f"Carta con ID {card_id} no encontrada"
         )
 
-    # Comprobar existencia del Set 
     if card_data.set_id is not None:
         db_set = crud_set.get_set_by_id(db, set_id=card_data.set_id)
         if not db_set:
@@ -63,8 +79,12 @@ def update_card(card_id: int, card_data: CardUpdate, db: Session = Depends(get_d
 
     return crud_card.update_card(db, db_card=db_card, card_data=card_data)
 
-# 5. Eliminar una carta
-@router.delete("/{card_id}", status_code=status.HTTP_204_NO_CONTENT)
+
+@router.delete(
+    "/{card_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Eliminar una carta"
+)
 def delete_card(card_id: int, db: Session = Depends(get_db)):
     db_card = crud_card.get_card_by_id(db, card_id=card_id)
     if not db_card:

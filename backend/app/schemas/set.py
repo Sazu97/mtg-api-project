@@ -1,24 +1,41 @@
 from datetime import date
-from typing import Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-# Campos base compartidos
+
 class SetBase(BaseModel):
-    code: str
-    name: str
-    release_date: Optional[date] = None
+    code: str = Field(..., min_length=2, max_length=10, description="Código de la colección (ej. BLB, LTR)")
+    name: str = Field(..., min_length=1, max_length=100, description="Nombre de la colección")
+    release_date: date | None = Field(default=None, description="Fecha de lanzamiento")
 
-# Esquema para crear un Set
+    @field_validator("code")
+    @classmethod
+    def code_to_uppercase(cls, v: str) -> str:
+        return v.strip().upper()
+
+    @field_validator("name")
+    @classmethod
+    def strip_name(cls, v: str) -> str:
+        cleaned = v.strip()
+        if not cleaned:
+            raise ValueError("El nombre no puede estar vacío.")
+        return cleaned
+
+
 class SetCreate(SetBase):
     pass
 
-# Esquema para actualizar un Set
-class SetUpdate(BaseModel):
-    code: Optional[str] = None
-    name: Optional[str] = None
-    release_date: Optional[date] = None
 
-# Esquema de respuesta
+class SetUpdate(BaseModel):
+    code: str | None = Field(default=None, min_length=2, max_length=10)
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    release_date: date | None = None
+
+    @field_validator("code")
+    @classmethod
+    def code_to_uppercase(cls, v: str | None) -> str | None:
+        return v.strip().upper() if v else None
+
+
 class SetResponse(SetBase):
     id: int
 

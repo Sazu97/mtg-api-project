@@ -6,7 +6,7 @@ from backend.app.core.database import Base
 class Card(Base):
     __tablename__ = "cards"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String(120), index=True, nullable=False)
     mana_cost = Column(String(30), nullable=True)
     type_line = Column(String(150), nullable=False)
@@ -17,3 +17,6 @@ class Card(Base):
     set_id = Column(Integer, ForeignKey("sets.id", ondelete="CASCADE"), nullable=False)
 
     set = relationship("Set", back_populates="cards")
+
+    def __repr__(self) -> str:
+        return f"<Card(id={self.id}, name='{self.name}', rarity='{self.rarity}')>"

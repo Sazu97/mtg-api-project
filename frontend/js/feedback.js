@@ -2,30 +2,63 @@
  * MTG Collection Vault — Sistema de Feedback y Modales
  */
 
-const toastContainer = document.getElementById("toast-container");
+function getToastContainer() {
+    let container = document.getElementById("toast-container");
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "toast-container";
+        document.body.appendChild(container);
+    }
+    return container;
+}
 
 function showToast(message, type = "success") {
-    if (!toastContainer) return;
+    const container = getToastContainer();
 
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
 
     const iconName = type === "success" ? "check_circle" : "error";
     const iconColor = type === "success" ? "var(--secondary)" : "var(--error)";
-    const title = type === "success" ? "Operación Exitosa" : "Aviso del Sistema";
+    const titleText = type === "success" ? "Operación Exitosa" : "Aviso del Sistema";
 
-    toast.innerHTML = `
-    <span class="material-symbols-outlined" style="color: ${iconColor}; font-size: 20px;">${iconName}</span>
-    <div style="flex: 1; min-width: 0;">
-        <p style="font-weight: 700; font-size: 0.85rem;">${title}</p>
-        <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 2px;">${message}</p>
-    </div>
-    <button class="btn-icon" style="padding: 2px;" onclick="this.parentElement.remove()">
-        <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
-    </button>
-    `;
+    // Estructura segura: Icono fijo y contenedor de textos
+    const icon = document.createElement("span");
+    icon.className = "material-symbols-outlined";
+    icon.style.color = iconColor;
+    icon.style.fontSize = "20px";
+    icon.textContent = iconName;
 
-    toastContainer.appendChild(toast);
+    const contentDiv = document.createElement("div");
+    contentDiv.style.flex = "1";
+    contentDiv.style.minWidth = "0";
+
+    const titleEl = document.createElement("p");
+    titleEl.style.fontWeight = "700";
+    titleEl.style.fontSize = "0.85rem";
+    titleEl.textContent = titleText;
+
+    const msgEl = document.createElement("p");
+    msgEl.style.color = "var(--text-muted)";
+    msgEl.style.fontSize = "0.8rem";
+    msgEl.style.marginTop = "2px";
+    msgEl.textContent = message;
+
+    contentDiv.appendChild(titleEl);
+    contentDiv.appendChild(msgEl);
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "btn-icon";
+    closeBtn.style.padding = "2px";
+    closeBtn.setAttribute("aria-label", "Cerrar notificación");
+    closeBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 14px;">close</span>';
+    closeBtn.addEventListener("click", () => toast.remove());
+
+    toast.appendChild(icon);
+    toast.appendChild(contentDiv);
+    toast.appendChild(closeBtn);
+
+    container.appendChild(toast);
 
     setTimeout(() => {
         if (toast.parentElement) toast.remove();

@@ -4,9 +4,12 @@
 
 function escapeHtml(text) {
     if (text === null || text === undefined) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 /* Convierte texto tipo {2}{U}{B} en iconos vectoriales oficiales de Mana Font */
@@ -18,7 +21,7 @@ function formatManaSymbols(cost) {
     });
 }
 
-/* Caché en memoria para no repetir peticiones a Scryfall */
+/* Caché en memoria para optimizar peticiones a Scryfall */
 const oracleCache = new Map();
 
 /* Consulta el texto oficial de reglas y datos de coleccionista de la carta */
@@ -27,7 +30,6 @@ function loadCardOracle(card) {
     const collectorBadge = document.getElementById(`collector-${card.id}`);
 
     function applyCardData(data) {
-        // 1. Texto Oracle
         if (oracleContainer) {
             if (data && data.oracle_text) {
                 oracleContainer.innerHTML = formatManaSymbols(escapeHtml(data.oracle_text)).replace(/\n/g, '<br>');
@@ -36,7 +38,6 @@ function loadCardOracle(card) {
             }
         }
 
-        // 2. Formato oficial de coleccionista: SET · [R] [0196]
         if (collectorBadge && data && data.collector_number) {
             const setCode = card.set ? card.set.code : `ID:${card.set_id}`;
             const rarityCode = (data.rarity || card.rarity || 'C')[0].toUpperCase();
@@ -45,13 +46,11 @@ function loadCardOracle(card) {
         }
     }
 
-    // Si ya lo consultamos antes, lo sacamos de la caché local
     if (oracleCache.has(card.name)) {
         applyCardData(oracleCache.get(card.name));
         return;
     }
 
-    // Petición a Scryfall
     fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(card.name)}`)
         .then(res => res.ok ? res.json() : null)
         .then(data => {
@@ -65,7 +64,6 @@ function loadCardOracle(card) {
 }
 
 const UI = {
-    // Renderiza el listado de colecciones
     renderSets: (sets, container) => {
         if (!container) return;
 
@@ -79,7 +77,7 @@ const UI = {
         }
 
         container.innerHTML = sets.map(set => {
-            const setCodeClean = escapeHtml(set.code.toLowerCase());
+            const setCodeClean = encodeURIComponent(set.code.toLowerCase());
             const artUrl = `https://api.scryfall.com/cards/random?q=set%3A${setCodeClean}&format=image&version=art_crop`;
 
             return `
@@ -99,13 +97,12 @@ const UI = {
                             <div>
                                 <h3 style="font-size: 1.1rem; font-weight: 700;">${escapeHtml(set.name)}</h3>
                                 <span class="text-muted mono" style="font-size: 0.75rem;">
-                                    ${set.release_date ? `Lanzamiento: ${set.release_date}` : 'Sin fecha'}
+                                    ${set.release_date ? `Lanzamiento: ${escapeHtml(set.release_date)}` : 'Sin fecha'}
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Banner de ilustración de la colección -->
                     <div class="set-art-container">
                         <img 
                             src="${artUrl}" 
@@ -133,7 +130,7 @@ const UI = {
                         <button class="btn-icon" title="Editar" onclick="openEditSetModal(${set.id})">
                             <span class="material-symbols-outlined">edit</span>
                         </button>
-                        <button class="btn-icon danger" title="Eliminar en cascada" onclick="requestDeleteSet(${set.id}, '${escapeHtml(set.name)}')">
+                        <button class="btn-icon danger" title="Eliminar en cascada" onclick="requestDeleteSet(${set.id})">
                             <span class="material-symbols-outlined">delete_sweep</span>
                         </button>
                     </div>
@@ -143,7 +140,6 @@ const UI = {
         }).join('');
     },
 
-    // Renderiza el catálogo de cartas
     renderCards: (cards, container) => {
         if (!container) return;
 
@@ -188,8 +184,6 @@ const UI = {
                     </div>
 
                     <p class="card-type">${escapeHtml(card.type_line)}</p>
-
-                    <!-- Cuadro de texto de reglas oficial -->
                     <div class="card-oracle-text" id="oracle-${card.id}"></div>
                 </div>
                 <div>
@@ -211,11 +205,9 @@ const UI = {
             `;
         }).join('');
 
-        // Carga los textos de reglas para las cartas renderizadas
         cards.forEach(card => loadCardOracle(card));
     },
 
-    // Rellena los selectores desplegables de colecciones
     populateDropdowns: (sets, filterSelect, formSelect) => {
         if (filterSelect) {
             const currentVal = filterSelect.value;

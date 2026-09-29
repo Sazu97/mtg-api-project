@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.core.database import engine, Base
 from backend.app.core.config import APP_TITLE, APP_VERSION, APP_DESCRIPTION
-from backend.app.routes import sets, card
+from backend.app.routes import sets, cards
 
 # Crea las tablas en SQLite si aún no existen
 Base.metadata.create_all(bind=engine)
@@ -18,14 +18,14 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Conectar las rutas
 app.include_router(sets.router, prefix="/sets", tags=["Sets"])
-app.include_router(card.router, prefix="/cards", tags=["Cards"])
+app.include_router(cards.router, prefix="/cards", tags=["Cards"])
 
 
 @app.get("/")
