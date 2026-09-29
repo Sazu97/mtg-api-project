@@ -41,14 +41,3 @@ class CardResponse(CardBase):
     set: SetResponse | None = None
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class ScryfallCardResponse(BaseModel):
-    name: str
-    mana_cost: str | None = None
-    type_line: str
-    rarity: str
-    power: str | None = None
-    toughness: str | None = None
-    oracle_text: str | None = None
-    image_url: str | None = None
