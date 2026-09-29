@@ -14,6 +14,45 @@ API REST y panel interactivo para la catalogación y gestión de cartas y colecc
 
 ---
 
+## 📂 Estructura del Proyecto
+
+```text
+mtg-api/
+├── backend/
+│   └── app/
+│       ├── controller/            # Capa de lógica de negocio y persistencia
+│       │   ├── card_controller.py
+│       │   └── set_controller.py
+│       ├── core/                  # Configuración del motor y base de datos
+│       │   ├── config.py
+│       │   └── database.py
+│       ├── models/                # Modelos ORM relacionales de SQLAlchemy
+│       │   ├── card_model.py
+│       │   └── set_model.py
+│       ├── routes/                # Endpoints y enrutadores HTTP de FastAPI
+│       │   ├── card_routes.py
+│       │   └── set_routes.py
+│       ├── schemas/               # Contratos y validación Pydantic v2
+│       │   ├── card_schema.py
+│       │   └── set_schema.py
+│       └── main.py                # Entrada de la API, CORS y ciclo de vida (lifespan)
+├── frontend/
+│   ├── css/                       # Estilos modulares desacoplados
+│   │   ├── base.css               # Variables, tokens de color y layout global
+│   │   ├── cards.css              # Tarjetas, rejillas y visualización Scryfall
+│   │   └── feedback.css           # Modales, tooltips de ayuda e insignias
+│   ├── js/                        # JavaScript Vanilla modular
+│   │   ├── api.js                 # Cliente unificado con Axios
+│   │   ├── app.js                 # Controlador principal y eventos
+│   │   ├── feedback.js            # Sistema de notificaciones toast y modales
+│   │   └── ui.js                  # Renderizado en DOM y caché en memoria
+│   └── index.html                 # Estructura semántica de la aplicación
+├── .env                           # Variables de entorno locales
+├── .gitignore                     # Exclusiones de Git (entornos virtuales, db, cache)
+├── mtg.db                         # Base de datos relacional SQLite
+├── README.md                      # Documentación del proyecto
+└── requirements.txt               # Dependencias de Python del proyecto
+
 ## 📐 Diagrama Entidad-Relación (DER)
 
 La persistencia modela una relación uno a muchos ($1:N$) entre colecciones (`sets`) y cartas (`cards`), asegurando que la eliminación de un set propague un borrado en cascada sobre todas sus cartas asociadas:
