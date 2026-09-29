@@ -55,6 +55,56 @@
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* Contenedor e icono SVG de la colección */
+.set-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 6px;
+  flex-shrink: 0;
+}
+
+/* Banner de arte para la tarjeta de colección */
+.set-art-container {
+  width: 100%;
+  height: 200px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.4);
+  margin-bottom: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.set-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.set-card:hover .set-art-img {
+  transform: scale(1.04);
+}
+
+.set-symbol-svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.set-card:hover .set-symbol-svg {
+  transform: scale(1.12);
+  filter: brightness(0) invert(1) drop-shadow(0 0 4px var(--primary));
+}
+
 /* ==========================================================================
     2. TOOLBAR & FILTROS DE CARTAS
    ========================================================================== */
@@ -163,11 +213,58 @@
   font-weight: 700;
 }
 
+.card-mana-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 1rem;
+}
+
+/* Recorte de la ilustración */
+.card-art-container {
+  width: 100%;
+  height: 200px; 
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.5);
+  margin: 0.75rem 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
 .card-type {
   font-size: 0.85rem;
   color: var(--text-muted);
   font-style: italic;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Caja de texto de reglas / Oracle */
+.card-oracle-text {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.45);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.8rem;
+  margin: 0.65rem 0;
+  border-left: 2px solid var(--primary);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.2px;
+}
+
+/* Símbolos de maná incrustados dentro del texto de reglas */
+.card-oracle-text i.ms {
+  font-size: 0.85rem;
+  vertical-align: -1px;
+  margin: 0 1px;
 }
 
 .card-bottom-info {
@@ -192,12 +289,20 @@
 .rarity-rare { background: rgba(245, 158, 11, 0.15); color: var(--rarity-rare); }
 .rarity-mythic { background: rgba(249, 115, 22, 0.15); color: var(--rarity-mythic); }
 
+/* Insignia de Fuerza / Resistencia estilo MTG */
 .card-pt {
-  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
-  background: var(--bg-surface-elevated);
+  font-size: 0.85rem;
   padding: 0.2rem 0.6rem;
   border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  letter-spacing: 0.5px;
 }
 
 .card-actions {
@@ -248,122 +353,51 @@
   font-weight: 700;
 }
 
-.card-mana-group {
+/* ==========================================================================
+    5. ETIQUETAS DE MÉTODOS HTTP & VISOR INTERACTIVO
+   ========================================================================== */
+.method-tag.put {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.docs-interactive-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: stretch; /* Ambos paneles igualan su altura automáticamente */
+}
+
+.endpoints-panel {
+  min-width: 0;
+  width: 100%;
+}
+
+.terminal-panel {
+  min-width: 0;
+  width: 100%;
   display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 1rem;
-}
-
-/* Recorte de la ilustración*/
-.card-art-container {
-  width: 100%;
-  height: 200px; 
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.5);
-  margin: 0.75rem 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.card-art-img {
-  width: 100%;
+  flex-direction: column;
   height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.3s ease;
+  box-sizing: border-box;
 }
 
-/* Insignia de Fuerza / Resistencia estilo MTG */
-.card-pt {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: 0.85rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-  letter-spacing: 0.5px;
-}
-
-/* Caja de texto de reglas / Oracle */
-.card-oracle-text {
-  font-size: 0.82rem;
-  line-height: 1.5;
-  color: #cbd5e1;
-  background: rgba(15, 23, 42, 0.45);
-  border-radius: var(--radius-sm);
-  padding: 0.65rem 0.8rem;
-  margin: 0.65rem 0;
-  border-left: 2px solid var(--primary);
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.2px;
-}
-
-/* Símbolos de maná incrustados dentro del texto de reglas */
-.card-oracle-text i.ms {
-  font-size: 0.85rem;
-  vertical-align: -1px;
-  margin: 0 1px;
-}
-
-/* Contenedor e icono SVG de la colección */
-.set-icon-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-sm);
-  padding: 6px;
+.terminal-header {
   flex-shrink: 0;
 }
 
-/* Banner de arte para la tarjeta de colección */
-.set-art-container {
-  width: 100%;
-  height: 200px;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.4);
-  margin-bottom: 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.set-art-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.3s ease;
-}
-
-.set-card:hover .set-art-img {
-  transform: scale(1.04);
-}
-
-.set-symbol-svg {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  /* Convierte el trazo negro original del SVG a blanco nítido para fondo oscuro */
-  filter: brightness(0) invert(1);
-  transition: transform 0.2s ease, filter 0.2s ease;
-}
-
-.set-card:hover .set-symbol-svg {
-  transform: scale(1.12);
-  filter: brightness(0) invert(1) drop-shadow(0 0 4px var(--primary));
+.code-viewer {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+  overflow-y: auto;
+  flex: 1;             /* Absorbe todo el espacio vertical hasta igualar la botonera */
+  min-height: 0;       /* Permite el scroll interior en lugar de forzar crecimiento */
+  margin: 1rem 0;
 }
 
 /* ==========================================================================
-    5. MEDIA QUERIES (CARDS & TOOLBAR)
+    6. MEDIA QUERIES (DOCS, CARDS & TOOLBAR)
    ========================================================================== */
 @media (min-width: 640px) {
   .cards-grid {
@@ -386,6 +420,12 @@
   }
 }
 
+@media (min-width: 992px) {
+  .docs-interactive-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  }
+}
+
 @media (min-width: 1024px) {
   .sets-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -394,4 +434,3 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
-

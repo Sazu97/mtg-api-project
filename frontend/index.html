@@ -11,12 +11,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
 
-<!-- CSS Modular -->
+  <!-- CSS Modular -->
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/cards.css" />
   <link rel="stylesheet" href="css/feedback.css" />
 
-<!-- Iconos vectoriales de maná (Mana Font) -->
+  <!-- Iconos vectoriales de maná (Mana Font) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mana-font@latest/css/mana.min.css" />
 
   <!-- Axios vía CDN -->
@@ -93,6 +93,14 @@
               <span class="text-muted">Crear nueva colección</span>
             </div>
 
+            <div class="endpoint-row" onclick="showEndpointMock('PUT_SETS')">
+              <div class="endpoint-route">
+                <span class="method-tag put">PUT</span>
+                <span>/sets/{id}</span>
+              </div>
+              <span class="text-muted">Actualizar datos de una colección</span>
+            </div>
+
             <div class="endpoint-row" onclick="showEndpointMock('GET_CARDS')">
               <div class="endpoint-route">
                 <span class="method-tag get">GET</span>
@@ -106,7 +114,23 @@
                 <span class="method-tag post">POST</span>
                 <span>/cards/</span>
               </div>
-              <span class="text-muted">Registrar carta asociada a un set</span>
+              <span class="text-muted">Registrar carta (auto-enriquece reglas)</span>
+            </div>
+
+            <div class="endpoint-row" onclick="showEndpointMock('PUT_CARDS')">
+              <div class="endpoint-route">
+                <span class="method-tag put">PUT</span>
+                <span>/cards/{id}</span>
+              </div>
+              <span class="text-muted">Actualizar atributos de una carta</span>
+            </div>
+
+            <div class="endpoint-row" onclick="showEndpointMock('DEL_CARDS')">
+              <div class="endpoint-route">
+                <span class="method-tag delete">DELETE</span>
+                <span>/cards/{id}</span>
+              </div>
+              <span class="text-muted">Eliminar una carta individual</span>
             </div>
 
             <div class="endpoint-row" onclick="showEndpointMock('DEL_SETS')">
@@ -126,7 +150,7 @@
                 <span class="dot"></span>
                 <span class="dot"></span>
               </div>
-              <span class="status-badge" style="background: rgba(76, 215, 246, 0.1);">Respuesta HTTP 200 OK</span>
+              <span class="status-badge" id="terminal-status-badge" style="background: rgba(76, 215, 246, 0.1); color: var(--secondary);">Respuesta HTTP 200 OK</span>
             </div>
             <pre class="code-viewer" id="json-viewer">[
   {
@@ -165,37 +189,7 @@
         </div>
 
         <div class="sets-grid" id="sets-container">
-          <!-- Tarjeta de ejemplo mientras conectamos Axios -->
-          <article class="set-card">
-            <div>
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                  <div class="set-badge-code">BLB</div>
-                  <div>
-                    <h3 style="font-size: 1.1rem; font-weight: 700;">Bloomburrow</h3>
-                    <span class="text-muted mono" style="font-size: 0.75rem;">Lanzamiento: 2024-08-02</span>
-                  </div>
-                </div>
-              </div>
-              <div class="set-card-stats">
-                <div>
-                  <span class="text-muted" style="font-size: 0.75rem; display: block;">ID en Base de Datos</span>
-                  <span class="mono" style="font-weight: 700; font-size: 1.1rem;">#1</span>
-                </div>
-                <div>
-                  <span class="text-muted" style="font-size: 0.75rem; display: block;">Cascada</span>
-                  <span class="mono" style="color: var(--secondary); font-size: 0.8rem;">Activa</span>
-                </div>
-              </div>
-            </div>
-            <div class="set-card-actions">
-              <span class="text-muted mono" style="font-size: 0.75rem;">ON DELETE CASCADE</span>
-              <div>
-                <button class="btn-icon" title="Editar"><span class="material-symbols-outlined">edit</span></button>
-                <button class="btn-icon danger" title="Borrar en cascada"><span class="material-symbols-outlined">delete_sweep</span></button>
-              </div>
-            </div>
-          </article>
+          <!-- Renderizado dinámico vía UI.renderSets -->
         </div>
       </div>
     </section>
@@ -238,27 +232,7 @@
 
         <!-- Grid de Cartas -->
         <div class="cards-grid" id="cards-container">
-          <!-- Tarjeta de ejemplo -->
-          <article class="card-item">
-            <div>
-              <div class="card-top">
-                <h3 class="card-name">Vren, the Relentless</h3>
-                <span class="card-mana">{2}{U}{B}</span>
-              </div>
-              <p class="card-type">Legendary Creature — Rat Rogue</p>
-            </div>
-            <div>
-              <div class="card-bottom-info">
-                <span class="rarity-badge rarity-rare">Rare</span>
-                <span class="text-muted mono" style="font-size: 0.8rem;">Set: BLB (#1)</span>
-                <div class="card-pt">3/4</div>
-              </div>
-              <div class="card-actions">
-                <button class="btn-icon" title="Editar"><span class="material-symbols-outlined">edit</span></button>
-                <button class="btn-icon danger" title="Eliminar"><span class="material-symbols-outlined">delete</span></button>
-              </div>
-            </div>
-          </article>
+          <!-- Renderizado dinámico vía UI.renderCards -->
         </div>
 
         <!-- Paginación -->
@@ -276,7 +250,7 @@
 
   <!-- ========================================================================
       MODALES
-        ======================================================================= -->
+      ======================================================================== -->
 
   <!-- Modal Crear/Editar Carta -->
   <div id="card-modal" class="modal-overlay hidden">
@@ -420,15 +394,56 @@
   <!-- Scripts auxiliares del visor de documentación -->
   <script>
     const mockData = {
-      GET_SETS: `[\n  {\n    "id": 1,\n    "code": "BLB",\n    "name": "Bloomburrow",\n    "release_date": "2024-08-02"\n  }\n]`,
-      POST_SETS: `{\n  "code": "MH3",\n  "name": "Modern Horizons 3",\n  "release_date": "2024-06-14"\n}`,
-      GET_CARDS: `[\n  {\n    "id": 1,\n    "name": "Vren, the Relentless",\n    "mana_cost": "{2}{U}{B}",\n    "type_line": "Legendary Creature — Rat Rogue",\n    "rarity": "Rare",\n    "power": "3",\n    "toughness": "4",\n    "set_id": 1\n  }\n]`,
-      POST_CARDS: `{\n  "name": "Heartfire Hero",\n  "mana_cost": "{R}",\n  "type_line": "Creature — Mouse Soldier",\n  "rarity": "Uncommon",\n  "power": "1",\n  "toughness": "1",\n  "set_id": 1\n}`,
-      DEL_SETS: `// Respuesta HTTP 204 No Content\n// Elimina el Set y sus cartas asociadas en cascada`
+      GET_SETS: {
+        status: "Respuesta HTTP 200 OK",
+        style: "background: rgba(76, 215, 246, 0.1); color: var(--secondary);",
+        code: `[\n  {\n    "id": 1,\n    "code": "BLB",\n    "name": "Bloomburrow",\n    "release_date": "2024-08-02"\n  }\n]`
+      },
+      POST_SETS: {
+        status: "Respuesta HTTP 201 Created",
+        style: "background: rgba(34, 197, 94, 0.15); color: #22c55e;",
+        code: `{\n  "id": 2,\n  "code": "MH3",\n  "name": "Modern Horizons 3",\n  "release_date": "2024-06-14"\n}`
+      },
+      PUT_SETS: {
+        status: "Respuesta HTTP 200 OK",
+        style: "background: rgba(76, 215, 246, 0.1); color: var(--secondary);",
+        code: `{\n  "id": 1,\n  "code": "BLB",\n  "name": "Bloomburrow (Collector Edition)",\n  "release_date": "2024-08-02"\n}`
+      },
+      GET_CARDS: {
+        status: "Respuesta HTTP 200 OK",
+        style: "background: rgba(76, 215, 246, 0.1); color: var(--secondary);",
+        code: `[\n  {\n    "id": 1,\n    "name": "Vren, the Relentless",\n    "mana_cost": "{2}{U}{B}",\n    "type_line": "Legendary Creature — Rat Rogue",\n    "rarity": "Rare",\n    "power": "3",\n    "toughness": "4",\n    "oracle_text": "Whenever another creature dies, exile it. At the beginning of each end step, create a 1/1 black Rat Rogue token...",\n    "set_id": 1\n  }\n]`
+      },
+      POST_CARDS: {
+        status: "Respuesta HTTP 201 Created",
+        style: "background: rgba(34, 197, 94, 0.15); color: #22c55e;",
+        code: `// Petición POST: el backend obtiene y almacena 'oracle_text' automáticamente desde Scryfall:\n{\n  "id": 2,\n  "name": "Marrow-Gnawer",\n  "mana_cost": "{3}{B}{B}",\n  "type_line": "Legendary Creature — Rat Rogue",\n  "rarity": "Rare",\n  "power": "2",\n  "toughness": "3",\n  "oracle_text": "Fear (This creature can't be blocked except by artifact creatures and/or black creatures.)\\n{T}, Sacrifice a Rat: Create X 1/1 black Rat creature tokens, where X is the number of Rats you control.",\n  "set_id": 1\n}`
+      },
+      PUT_CARDS: {
+        status: "Respuesta HTTP 200 OK",
+        style: "background: rgba(76, 215, 246, 0.1); color: var(--secondary);",
+        code: `{\n  "id": 1,\n  "name": "Vren, the Relentless",\n  "mana_cost": "{2}{U}{B}",\n  "type_line": "Legendary Creature — Rat Rogue",\n  "rarity": "Mythic",\n  "power": "3",\n  "toughness": "4",\n  "oracle_text": "Whenever another creature dies, exile it. At the beginning of each end step, create a 1/1 black Rat Rogue token...",\n  "set_id": 1\n}`
+      },
+      DEL_CARDS: {
+        status: "Respuesta HTTP 204 No Content",
+        style: "background: rgba(239, 68, 68, 0.15); color: var(--error);",
+        code: `// Respuesta HTTP 204 No Content\n// Elimina la carta individual de la base de datos sin afectar a su colección`
+      },
+      DEL_SETS: {
+        status: "Respuesta HTTP 204 No Content",
+        style: "background: rgba(239, 68, 68, 0.15); color: var(--error);",
+        code: `// Respuesta HTTP 204 No Content\n// Elimina el Set y sus cartas asociadas en cascada (ON DELETE CASCADE)`
+      }
     };
 
     function showEndpointMock(key) {
-      document.getElementById('json-viewer').textContent = mockData[key];
+      const item = mockData[key];
+      document.getElementById('json-viewer').textContent = item.code;
+      const badge = document.getElementById('terminal-status-badge');
+      if (badge) {
+        badge.textContent = item.status;
+        badge.style.cssText = item.style;
+      }
       document.querySelectorAll('.endpoint-row').forEach(row => row.classList.remove('active'));
       event.currentTarget.classList.add('active');
     }
@@ -453,7 +468,6 @@
   </script>
 
   <!-- Scripts modulares en orden de dependencia -->
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="js/api.js"></script>
   <script src="js/feedback.js"></script>
   <script src="js/ui.js"></script>
